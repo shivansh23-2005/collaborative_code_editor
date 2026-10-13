@@ -5,6 +5,7 @@ import "./AuthPage.css";
 function AuthPage({ onLogin, onRegister }) {
   const [isRegister, setIsRegister] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+
   const [theme, setTheme] = useState(
     () => localStorage.getItem("collabcode-auth-theme") || "dark"
   );
@@ -17,6 +18,7 @@ function AuthPage({ onLogin, onRegister }) {
   });
 
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
 
   const toggleTheme = () => {
     const newTheme = theme === "dark" ? "light" : "dark";
@@ -29,12 +31,15 @@ function AuthPage({ onLogin, onRegister }) {
       ...form,
       [e.target.name]: e.target.value,
     });
+
     setError("");
+    setSuccess("");
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+    setSuccess("");
 
     if (isRegister && form.password !== form.confirmPassword) {
       setError("Passwords do not match.");
@@ -48,6 +53,17 @@ function AuthPage({ onLogin, onRegister }) {
           email: form.email,
           password: form.password,
         });
+
+        setSuccess("Account created successfully!");
+
+        setForm({
+          name: "",
+          email: "",
+          password: "",
+          confirmPassword: "",
+        });
+
+        setShowPassword(false);
       } else {
         await onLogin({
           email: form.email,
@@ -57,6 +73,13 @@ function AuthPage({ onLogin, onRegister }) {
     } catch (err) {
       setError(err.message || "Something went wrong.");
     }
+  };
+
+  const switchAuthMode = (registerMode) => {
+    setIsRegister(registerMode);
+    setError("");
+    setSuccess("");
+    setShowPassword(false);
   };
 
   return (
@@ -82,10 +105,11 @@ function AuthPage({ onLogin, onRegister }) {
             type="button"
             className="theme-toggle"
             onClick={toggleTheme}
-            aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} theme`}
+            aria-label={`Switch to ${
+              theme === "dark" ? "light" : "dark"
+            } theme`}
           >
             <span>{theme === "dark" ? "☀️" : "🌙"}</span>
-            {/* {theme === "dark" ? "Light Mode" : "Dark Mode"} */}
           </button>
         </div>
       </nav>
@@ -112,7 +136,9 @@ function AuthPage({ onLogin, onRegister }) {
               <span className="feature-icon">&lt;/&gt;</span>
               <div>
                 <h3>Powerful code editor</h3>
-                <p>Write code with a familiar developer experience.</p>
+                <p>
+                  Write code with a familiar developer experience.
+                </p>
               </div>
             </div>
 
@@ -180,10 +206,7 @@ function AuthPage({ onLogin, onRegister }) {
             <button
               type="button"
               className={!isRegister ? "active" : ""}
-              onClick={() => {
-                setIsRegister(false);
-                setError("");
-              }}
+              onClick={() => switchAuthMode(false)}
             >
               Sign in
             </button>
@@ -191,10 +214,7 @@ function AuthPage({ onLogin, onRegister }) {
             <button
               type="button"
               className={isRegister ? "active" : ""}
-              onClick={() => {
-                setIsRegister(true);
-                setError("");
-              }}
+              onClick={() => switchAuthMode(true)}
             >
               Create account
             </button>
@@ -285,7 +305,18 @@ function AuthPage({ onLogin, onRegister }) {
               </div>
             )}
 
-            {error && <div className="auth-error">{error}</div>}
+            {error && (
+              <div className="auth-error" role="alert">
+                {error}
+              </div>
+            )}
+
+            {success && (
+              <div className="auth-success" role="status">
+                <span>✓</span>
+                {success}
+              </div>
+            )}
 
             <button type="submit" className="auth-submit">
               {isRegister ? "Create account" : "Sign in"}
@@ -300,10 +331,7 @@ function AuthPage({ onLogin, onRegister }) {
 
             <button
               type="button"
-              onClick={() => {
-                setIsRegister(!isRegister);
-                setError("");
-              }}
+              onClick={() => switchAuthMode(!isRegister)}
             >
               {isRegister ? "Sign in" : "Create account"}
             </button>
